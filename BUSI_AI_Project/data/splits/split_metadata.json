@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-08-28T12:04:16.774576",
+  "seed": 42,
+  "split_ratios": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "total_images": 628,
+  "counts": {
+    "train": {
+      "total": 439,
+      "benign": 294,
+      "malignant": 145,
+      "malignant_ratio": 0.33029612756264237
+    },
+    "val": {
+      "total": 94,
+      "benign": 63,
+      "malignant": 31,
+      "malignant_ratio": 0.32978723404255317
+    },
+    "test": {
+      "total": 95,
+      "benign": 63,
+      "malignant": 32,
+      "malignant_ratio": 0.3368421052631579
+    }
+  },
+  "overall": {
+    "total": 628,
+    "benign": 420,
+    "malignant": 208,
+    "malignant_ratio": 0.33121019108280253
+  },
+  "note": "image-level stratified; not patient-wise (BUSI patient IDs not verified in local data)"
+}

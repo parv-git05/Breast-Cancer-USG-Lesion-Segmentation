@@ -1,0 +1,21 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Experiment outputs and checkpoints
+outputs/checkpoints/
+outputs/logs/
+outputs/reports/*.png
+outputs/reports/*.csv
+!outputs/reports/.gitkeep
+
+# Processed derived data
+data/processed/
+
+# System and IDE
+.vscode/
+.idea/
+*.swp
