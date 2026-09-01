@@ -31,12 +31,14 @@ class BUSIDataset(Dataset):
         split_source: Union[str, pd.DataFrame],
         transform: Optional[Callable] = None,
         allow_empty_masks: bool = False,
+        raw_root: str = "",
     ):
         """
         Args:
             split_source: Path to split CSV (train.csv / val.csv / test.csv) or DataFrame.
             transform: DualTransformPipeline callable taking (image_pil, mask_pil).
             allow_empty_masks: If False, raises ValueError when a mask has 0 lesion pixels.
+            raw_root: Directory prefix for image and mask paths.
         """
         if isinstance(split_source, str):
             if not os.path.exists(split_source):
@@ -53,6 +55,7 @@ class BUSIDataset(Dataset):
 
         self.transform = transform
         self.allow_empty_masks = allow_empty_masks
+        self.raw_root = raw_root
 
         # Pre-verify file existence
         self._verify_files()
@@ -70,6 +73,11 @@ class BUSIDataset(Dataset):
         row = self.df.iloc[idx]
         img_path = str(row["image_path"])
         mask_path = str(row["mask_path"])
+        
+        if self.raw_root:
+            img_path = os.path.join(self.raw_root, img_path)
+            mask_path = os.path.join(self.raw_root, mask_path)
+
         class_name = str(row.get("class", "unknown"))
         class_id = int(row.get("class_id", 0 if class_name == "benign" else 1))
 
@@ -150,31 +158,36 @@ def compute_train_statistics(train_csv_path: str, image_size: Tuple[int, int] = 
     return mean, std
 
 
-def get_dataloaders(
+def get_fold_dataloaders(
     config: Dict[str, Any],
+    fold_idx: int,
     train_mean: Optional[float] = None,
     train_std: Optional[float] = None,
-) -> Tuple[DataLoader, DataLoader, DataLoader]:
+) -> Tuple[DataLoader, DataLoader]:
     """
-    Construct DataLoaders for train, val, and test splits adhering to configuration.
+    Construct DataLoaders for a specific cross-validation fold (train and val).
+    Zero test leakage: test set is NOT loaded or evaluated.
     """
-    splits_dir = config["data"]["splits_dir"]
-    train_csv = os.path.join(splits_dir, "train.csv")
-    val_csv = os.path.join(splits_dir, "val.csv")
-    test_csv = os.path.join(splits_dir, "test.csv")
+    folds_dir = config.get("data", {}).get("folds_dir", "data/folds")
+    train_csv = os.path.join(folds_dir, f"fold_{fold_idx}_train.csv")
+    val_csv = os.path.join(folds_dir, f"fold_{fold_idx}_val.csv")
+
+    if not os.path.exists(train_csv):
+        raise FileNotFoundError(f"Fold {fold_idx} training CSV not found at: {train_csv}")
+    if not os.path.exists(val_csv):
+        raise FileNotFoundError(f"Fold {fold_idx} validation CSV not found at: {val_csv}")
 
     batch_size = config.get("training", {}).get("batch_size", 8)
     num_workers = config.get("hardware", {}).get("num_workers", 0)
+    raw_root = config.get("data", {}).get("raw_root", "")
 
-    # Build transforms
+    # Build transforms: augmentations ONLY for training, deterministic for validation
     train_transform = build_transforms(config, is_train=True, train_mean=train_mean, train_std=train_std)
     eval_transform = build_transforms(config, is_train=False, train_mean=train_mean, train_std=train_std)
 
-    train_dataset = BUSIDataset(train_csv, transform=train_transform)
-    val_dataset = BUSIDataset(val_csv, transform=eval_transform)
-    test_dataset = BUSIDataset(test_csv, transform=eval_transform)
+    train_dataset = BUSIDataset(train_csv, transform=train_transform, raw_root=raw_root)
+    val_dataset = BUSIDataset(val_csv, transform=eval_transform, raw_root=raw_root)
 
-    # Deterministic loader flags
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -193,13 +206,15 @@ def get_dataloaders(
         drop_last=False,
     )
 
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
-        drop_last=False,
-    )
+    return train_loader, val_loader
 
-    return train_loader, val_loader, test_loader
+
+def get_dataloaders(
+    config: Dict[str, Any],
+    fold_idx: int = 1,
+    train_mean: Optional[float] = None,
+    train_std: Optional[float] = None,
+) -> Tuple[DataLoader, DataLoader]:
+    """Backward compatible wrapper delegating to get_fold_dataloaders."""
+    return get_fold_dataloaders(config, fold_idx=fold_idx, train_mean=train_mean, train_std=train_std)
+

@@ -63,7 +63,8 @@ def load_manifest(
 
 def validate_manifest(
     manifest_path: str = DEFAULT_MANIFEST_PATH,
-    excluded_path: str = DEFAULT_EXCLUDED_PATH
+    excluded_path: str = DEFAULT_EXCLUDED_PATH,
+    raw_root: str = ""
 ) -> Dict[str, Any]:
     """
     Run comprehensive contract and Quality Gate 1 validation checks on the manifest.
@@ -108,8 +109,8 @@ def validate_manifest(
     empty_masks = []
 
     for idx, row in manifest_df.iterrows():
-        img_p = str(row["image_path"])
-        msk_p = str(row["mask_path"])
+        img_p = os.path.join(raw_root, str(row["image_path"])) if raw_root else str(row["image_path"])
+        msk_p = os.path.join(raw_root, str(row["mask_path"])) if raw_root else str(row["mask_path"])
 
         if not os.path.exists(img_p):
             missing_images.append(img_p)

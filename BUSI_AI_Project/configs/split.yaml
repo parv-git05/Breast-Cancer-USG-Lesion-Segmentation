@@ -1,10 +1,10 @@
 data:
-  raw_root: "D:/Dataset_BUSI_with_GT"
+  raw_root: ".."
   manifest: "data/manifests/BUSI_phase1_manifest.csv"
   excluded: "data/manifests/BUSI_phase1_excluded.csv"
-  splits_dir: "data/splits"
-  split_seed: 42
-  split_ratios: [0.70, 0.15, 0.15]
+  folds_dir: "data/folds"
+  n_splits: 3
+  seed: 42
   image_size: [256, 256]
 
 preprocessing:
@@ -24,3 +24,4 @@ hardware:
   device: "auto"
   deterministic: true
   num_workers: 0
+

@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-09-01T12:13:04.249884",
+  "seed": 42,
+  "n_splits": 3,
+  "total_images": 628,
+  "counts": {
+    "fold_1": {
+      "train": {
+        "total": 418,
+        "benign": 280,
+        "malignant": 138,
+        "malignant_ratio": 0.33014354066985646
+      },
+      "val": {
+        "total": 210,
+        "benign": 140,
+        "malignant": 70,
+        "malignant_ratio": 0.3333333333333333
+      }
+    },
+    "fold_2": {
+      "train": {
+        "total": 419,
+        "benign": 280,
+        "malignant": 139,
+        "malignant_ratio": 0.3317422434367542
+      },
+      "val": {
+        "total": 209,
+        "benign": 140,
+        "malignant": 69,
+        "malignant_ratio": 0.33014354066985646
+      }
+    },
+    "fold_3": {
+      "train": {
+        "total": 419,
+        "benign": 280,
+        "malignant": 139,
+        "malignant_ratio": 0.3317422434367542
+      },
+      "val": {
+        "total": 209,
+        "benign": 140,
+        "malignant": 69,
+        "malignant_ratio": 0.33014354066985646
+      }
+    }
+  },
+  "overall": {
+    "total": 628,
+    "benign": 420,
+    "malignant": 208,
+    "malignant_ratio": 0.33121019108280253
+  },
+  "note": "3-fold stratified image-level cross-validation; not patient-wise."
+}
