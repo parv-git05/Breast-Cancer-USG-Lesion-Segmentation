@@ -1,0 +1,16 @@
+{
+  "update-folder-structure": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ../update_folder_structure.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

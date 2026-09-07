@@ -1,0 +1,15 @@
+{
+  "fold": 1,
+  "best_epoch": 70,
+  "best_val_dice": 0.7281677072105309,
+  "best_val_iou": 0.6288251200775975,
+  "final_train_loss": 0.1988850048881896,
+  "final_val_loss": 0.24201653090616068,
+  "total_epochs_trained": 90,
+  "training_duration_seconds": 1211.1668352999986,
+  "checkpoint_path": "outputs/checkpoints/exp_seg_02\\fold_1\\best_model.pt",
+  "val_dice_mean": 0.7281624804902678,
+  "val_dice_std": 0.27101550656761425,
+  "val_iou_mean": 0.6288185484289843,
+  "val_iou_std": 0.26991475867910775
+}

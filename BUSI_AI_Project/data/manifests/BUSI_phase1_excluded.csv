@@ -1,0 +1,18 @@
+image,reason,num_masks
+benign\benign (100).png,multiple_masks,2
+benign\benign (163).png,multiple_masks,2
+benign\benign (173).png,multiple_masks,2
+benign\benign (181).png,multiple_masks,2
+benign\benign (195).png,multiple_masks,3
+benign\benign (25).png,multiple_masks,2
+benign\benign (315).png,multiple_masks,2
+benign\benign (346).png,multiple_masks,2
+benign\benign (4).png,multiple_masks,2
+benign\benign (424).png,multiple_masks,2
+benign\benign (54).png,multiple_masks,2
+benign\benign (58).png,multiple_masks,2
+benign\benign (83).png,multiple_masks,2
+benign\benign (92).png,multiple_masks,2
+benign\benign (93).png,multiple_masks,2
+benign\benign (98).png,multiple_masks,2
+malignant\malignant (53).png,multiple_masks,2

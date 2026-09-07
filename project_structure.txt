@@ -1,0 +1,211 @@
+Project Folder Structure: Breast-Cancer-USG-Lesion-Segmentation
+============================================================
+
+├── .agents/
+│   └── hooks.json
+├── BUSI_AI_Project/
+│   ├── configs/
+│   │   ├── exp_seg_02.yaml
+│   │   └── split.yaml
+│   ├── data/
+│   │   ├── folds/
+│   │   │   └── exp_seg_02/
+│   │   │       ├── cv_metadata.json
+│   │   │       ├── fold_1_train.csv
+│   │   │       ├── fold_1_val.csv
+│   │   │       ├── fold_2_train.csv
+│   │   │       ├── fold_2_val.csv
+│   │   │       ├── fold_3_train.csv
+│   │   │       └── fold_3_val.csv
+│   │   ├── manifests/
+│   │   │   ├── BUSI_development_manifest.csv
+│   │   │   ├── BUSI_final_test_manifest.csv
+│   │   │   ├── BUSI_phase1_excluded.csv
+│   │   │   └── BUSI_phase1_manifest.csv
+│   │   └── test_set/
+│   │       ├── images/
+│   │       │   ├── benign (118).png
+│   │       │   ├── benign (119).png
+│   │       │   ├── benign (143).png
+│   │       │   ├── benign (145).png
+│   │       │   ├── benign (149).png
+│   │       │   ├── benign (152).png
+│   │       │   ├── benign (165).png
+│   │       │   ├── benign (180).png
+│   │       │   ├── benign (192).png
+│   │       │   ├── benign (196).png
+│   │       │   ├── benign (2).png
+│   │       │   ├── benign (212).png
+│   │       │   └── ... (51 additional files omitted for brevity)
+│   │       └── masks/
+│   │           ├── benign (118)_mask.png
+│   │           ├── benign (119)_mask.png
+│   │           ├── benign (143)_mask.png
+│   │           ├── benign (145)_mask.png
+│   │           ├── benign (149)_mask.png
+│   │           ├── benign (152)_mask.png
+│   │           ├── benign (165)_mask.png
+│   │           ├── benign (180)_mask.png
+│   │           ├── benign (192)_mask.png
+│   │           ├── benign (196)_mask.png
+│   │           ├── benign (2)_mask.png
+│   │           ├── benign (212)_mask.png
+│   │           └── ... (51 additional files omitted for brevity)
+│   ├── outputs/
+│   │   ├── checkpoints/
+│   │   │   └── exp_seg_02/
+│   │   │       ├── final_model/
+│   │   │       │   └── final_model.pt
+│   │   │       ├── fold_1/
+│   │   │       │   └── best_model.pt
+│   │   │       ├── fold_2/
+│   │   │       │   └── best_model.pt
+│   │   │       └── fold_3/
+│   │   │           └── best_model.pt
+│   │   ├── logs/
+│   │   │   └── exp_seg_02/
+│   │   │       ├── final_model/
+│   │   │       │   └── training_history.csv
+│   │   │       ├── fold_1/
+│   │   │       │   └── training_history.csv
+│   │   │       ├── fold_2/
+│   │   │       │   └── training_history.csv
+│   │   │       └── fold_3/
+│   │   │           └── training_history.csv
+│   │   └── reports/
+│   │       └── exp_seg_02/
+│   │           ├── final_model/
+│   │           │   ├── training_curves.png
+│   │           │   └── training_metadata.json
+│   │           ├── fold_1/
+│   │           │   ├── metric_summary.json
+│   │           │   ├── training_curves.png
+│   │           │   ├── val_best_samples.png
+│   │           │   ├── val_median_samples.png
+│   │           │   ├── val_metric_distributions.png
+│   │           │   ├── val_pixel_confusion_matrix.png
+│   │           │   ├── val_predictions.csv
+│   │           │   └── val_worst_failure_samples.png
+│   │           ├── fold_2/
+│   │           │   ├── metric_summary.json
+│   │           │   ├── training_curves.png
+│   │           │   ├── val_best_samples.png
+│   │           │   ├── val_median_samples.png
+│   │           │   ├── val_metric_distributions.png
+│   │           │   ├── val_pixel_confusion_matrix.png
+│   │           │   ├── val_predictions.csv
+│   │           │   └── val_worst_failure_samples.png
+│   │           ├── fold_3/
+│   │           │   ├── metric_summary.json
+│   │           │   ├── training_curves.png
+│   │           │   ├── val_best_samples.png
+│   │           │   ├── val_median_samples.png
+│   │           │   ├── val_metric_distributions.png
+│   │           │   ├── val_pixel_confusion_matrix.png
+│   │           │   ├── val_predictions.csv
+│   │           │   └── val_worst_failure_samples.png
+│   │           ├── test_evaluation/
+│   │           │   ├── qualitative/
+│   │           │   │   ├── sample_001_benign (257).png
+│   │           │   │   ├── sample_002_malignant (84).png
+│   │           │   │   ├── sample_003_benign (196).png
+│   │           │   │   ├── sample_004_malignant (81).png
+│   │           │   │   ├── sample_005_benign (248).png
+│   │           │   │   ├── sample_006_benign (417).png
+│   │           │   │   ├── sample_007_benign (275).png
+│   │           │   │   ├── sample_008_benign (64).png
+│   │           │   │   ├── sample_009_benign (274).png
+│   │           │   │   ├── sample_010_malignant (186).png
+│   │           │   │   ├── sample_011_benign (143).png
+│   │           │   │   ├── sample_012_benign (317).png
+│   │           │   │   └── ... (51 additional files omitted for brevity)
+│   │           │   ├── per_image_metrics.csv
+│   │           │   ├── test_evaluation_metadata.json
+│   │           │   ├── test_evaluation_report.md
+│   │           │   ├── test_metric_boxplot.png
+│   │           │   ├── test_metric_summary.png
+│   │           │   └── test_metrics.json
+│   │           ├── cv_out_of_fold_predictions.csv
+│   │           ├── cv_summary.json
+│   │           └── cv_summary_report.md
+│   ├── src/
+│   │   ├── models/
+│   │   │   └── unet.py
+│   │   ├── audit.py
+│   │   ├── dataset.py
+│   │   ├── evaluate_test.py
+│   │   ├── losses.py
+│   │   ├── manifest.py
+│   │   ├── metrics.py
+│   │   ├── split.py
+│   │   ├── train.py
+│   │   ├── transforms.py
+│   │   ├── utils.py
+│   │   └── visualize.py
+│   ├── tests/
+│   │   ├── test_data.py
+│   │   ├── test_metrics.py
+│   │   └── test_unet.py
+│   ├── README.md
+│   ├── RUNBOOK.md
+│   └── requirements.txt
+├── benign/
+│   ├── benign (1).png
+│   ├── benign (1)_mask.png
+│   ├── benign (10).png
+│   ├── benign (10)_mask.png
+│   ├── benign (100).png
+│   ├── benign (100)_mask.png
+│   ├── benign (100)_mask_1.png
+│   ├── benign (101).png
+│   ├── benign (101)_mask.png
+│   ├── benign (102).png
+│   ├── benign (102)_mask.png
+│   ├── benign (103).png
+│   └── ... (877 additional files omitted for brevity)
+├── malignant/
+│   ├── malignant (1).png
+│   ├── malignant (1)_mask.png
+│   ├── malignant (10).png
+│   ├── malignant (10)_mask.png
+│   ├── malignant (100).png
+│   ├── malignant (100)_mask.png
+│   ├── malignant (101).png
+│   ├── malignant (101)_mask.png
+│   ├── malignant (102).png
+│   ├── malignant (102)_mask.png
+│   ├── malignant (103).png
+│   ├── malignant (103)_mask.png
+│   └── ... (407 additional files omitted for brevity)
+├── normal/
+│   ├── normal (1).png
+│   ├── normal (1)_mask.png
+│   ├── normal (10).png
+│   ├── normal (10)_mask.png
+│   ├── normal (100).png
+│   ├── normal (100)_mask.png
+│   ├── normal (101).png
+│   ├── normal (101)_mask.png
+│   ├── normal (102).png
+│   ├── normal (102)_mask.png
+│   ├── normal (103).png
+│   ├── normal (103)_mask.png
+│   └── ... (254 additional files omitted for brevity)
+├── problems in multi masks/
+│   ├── 2masks_5visualLesions_(lesser_dark_not_maked).png
+│   ├── 3lesion_2masks.png
+│   ├── 3lesions_2segments.png
+│   ├── Scared_multiple_visualLesions_2masks.png
+│   ├── Scattered_multiple_visualLesions_2masks.png
+│   ├── Visual_problems_in_multi_masks.pdf
+│   ├── clustered_masks.png
+│   ├── multiple_visualLesions_2masks.png
+│   └── veryUnclear_tissue.png
+├── .gitignore
+├── AGENTS.md
+├── BUSI_phase1_excluded.csv
+├── BUSI_phase1_manifest.csv
+├── PRD.txt
+├── Progress Document.docx
+├── new.ipynb
+└── update_folder_structure.py

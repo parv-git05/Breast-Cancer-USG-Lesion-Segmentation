@@ -1,0 +1,644 @@
+================================================================================
+PRODUCT REQUIREMENTS DOCUMENT
+Breast Ultrasound AI Pipeline — Phase 1
+Target: Antigravity IDE Coding/Execution Agent
+================================================================================
+
+REVISION: 1.0
+STATUS: ACTIVE — DO NOT MODIFY WITHOUT UPDATING THIS HEADER
+
+
+────────────────────────────────────────────────────────────────────────────────
+1. PROBLEM STATEMENT
+────────────────────────────────────────────────────────────────────────────────
+Build a reproducible medical computer-vision pipeline for B-mode breast
+ultrasound (BUS) lesion analysis on the BUSI dataset.
+
+Phase 1 Goal A: Binary lesion segmentation — given a BUS image with one
+ground-truth mask, predict a binary pixel mask (lesion=1, background=0).
+
+Phase 1 Goal B: Malignancy classification — given a BUS image and a
+segmentation-derived ROI, classify benign vs malignant.
+
+The pipeline must be leakage-safe, metric-correct, config-driven, and
+structured so that baseline results are trustworthy before any advanced
+model is attempted.
+
+This is a research/educational project. It is NOT a clinical diagnostic
+system. Model outputs must not be used to make or infer clinical diagnoses.
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. SCOPE — PHASE 1
+────────────────────────────────────────────────────────────────────────────────
+IN SCOPE
+  - BUSI dataset only; 628 single-mask images (420 benign, 208 malignant)
+  - Image-level stratified train/val/test split (70/15/15 %)
+  - Preprocessing, augmentation, dataloader
+  - Baseline U-Net binary segmentation (plain U-Net, no attention/transformers)
+  - Segmentation evaluation (Dice, IoU, secondary metrics)
+  - Malignancy classifier:
+      (a) oracle-ROI baseline — ROI from ground-truth mask
+      (b) predicted-ROI baseline — ROI from U-Net prediction
+  - Evaluation, comparison, qualitative overlays
+  - Unit/smoke tests for data pipeline and metrics
+  - Experiment config, checkpointing, logging
+
+OUT OF SCOPE (Phase 1)
+  - BUS-UCLM dataset ingestion
+  - BUSI multi-mask cases (17 cases held out; do not use)
+  - BUSI normal images (133 cases held out; do not use)
+  - Multi-lesion segmentation
+  - Transformers, attention U-Net, UNet++, UNet3+, TransUNet
+  - Uncertainty / boundary analysis
+  - Patient-wise splitting (BUSI local data do not expose verified patient IDs)
+  - Clinical deployment, DICOM, PACS integration
+  - Any action that overwrites or deletes raw data files
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. CURRENT DATA STATE (DO NOT ALTER)
+────────────────────────────────────────────────────────────────────────────────
+Raw dataset root:     D:\Dataset_BUSI_with_GT\
+Subfolders:           benign\   malignant\   normal\
+
+Audit results (original, before manual cleaning):
+  Benign:     437 images, 454 masks (16 multi-mask)
+  Malignant:  210 images, 211 masks  (1 multi-mask)
+  Normal:     133 images, 133 masks  (0 multi-mask)
+  Total images: 780
+
+Manual cleaning already done (do not redo or treat as errors):
+  - Contradictory exact-duplicate pair deleted:
+      benign/benign (433).png  +  malignant/malignant (145).png
+    These two files were confirmed pixel-identical. Their corresponding
+    masks were also deleted. Do NOT attempt to recreate them.
+  - No other files were modified.
+
+Phase 1 clean set:
+  Total:      628 images (every image has exactly one mask)
+  Benign:     420
+  Malignant:  208
+  Excluded:    17 multi-mask cases (held out; recorded in exclusion CSV)
+  Held out:   133 normal images (not usable for lesion segmentation)
+
+Existing CSVs (already created; do not regenerate from scratch):
+  BUSI_phase1_manifest.csv  — 628 rows; columns include at minimum:
+                               filename, class, mask_filename, split (TBD)
+  BUSI_phase1_excluded.csv  — 17 rows; multi-mask cases with reason
+
+Train/val/test split CSVs: NOT YET CREATED. Must be generated next.
+
+Patient-ID caveat: BUSI patient IDs are NOT verified in the local dataset
+copy. The initial split is therefore image-level stratified, NOT
+patient-wise. This limitation must be documented in the README and in
+experiment reports. If a reliable patient-ID mapping is later recovered,
+replace with patient-wise splitting and record the change.
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. RESEARCH QUESTIONS (Phase 1)
+────────────────────────────────────────────────────────────────────────────────
+RQ1: What Dice/IoU does a plain U-Net achieve on single-lesion BUSI images?
+RQ2: Does segmentation-derived ROI improve malignancy classification versus
+     using the full image?
+RQ3: How much does predicted-ROI quality degrade classification vs oracle ROI?
+RQ4: What is the class-imbalance effect on segmentation and classification?
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. PROJECT DIRECTORY STRUCTURE
+────────────────────────────────────────────────────────────────────────────────
+bus_project/
+  configs/                  YAML experiment configs (one file per experiment)
+  data/
+    manifests/              BUSI_phase1_manifest.csv, BUSI_phase1_excluded.csv
+    splits/                 train.csv, val.csv, test.csv  (generated by agent)
+    processed/              derived/resized artifacts ONLY (never raw originals)
+  src/
+    audit.py                data audit and validation module
+    manifest.py             manifest loading and verification
+    split.py                split generation
+    dataset.py              PyTorch Dataset / DataLoader
+    transforms.py           preprocessing and augmentation
+    models/
+      unet.py               plain U-Net (Phase 1 only)
+    losses.py               Dice loss, BCE+Dice combined
+    metrics.py              segmentation and classification metrics
+    train.py                training loop (segmentation)
+    evaluate.py             evaluation pipeline (seg + classification)
+    classify.py             classification model, train, evaluate
+    visualize.py            overlay / prediction visualization
+    utils.py                seed, device, config loader, checkpoint I/O
+  tests/
+    test_data.py            smoke tests: manifest counts, split disjointness
+    test_metrics.py         unit tests: Dice, IoU, AUC on toy inputs
+  outputs/
+    checkpoints/            model weights (gitignored)
+    logs/                   training logs (gitignored)
+    reports/                metric CSVs, confusion matrices, overlays
+  README.md
+  requirements.txt
+  .gitignore                excludes: data/processed/, outputs/checkpoints/,
+                            outputs/logs/, __pycache__, *.pyc, *.egg-info
+
+Raw data (D:\Dataset_BUSI_with_GT\) is NEVER written to or deleted by code.
+
+
+────────────────────────────────────────────────────────────────────────────────
+6. MODULE RESPONSIBILITIES
+────────────────────────────────────────────────────────────────────────────────
+audit.py
+  - Walk raw dataset folder; count images and masks per class.
+  - Detect multi-mask cases (multiple mask files for one image).
+  - Detect empty masks (zero nonzero pixels).
+  - Detect dimension mismatches between image and mask.
+  - Detect presence/absence of the deleted duplicate pair (log as expected
+    absent; do not error).
+  - Output: console report + optional JSON summary. Never writes to raw folder.
+
+manifest.py
+  - Load and validate BUSI_phase1_manifest.csv.
+  - Assert: row count == 628, benign == 420, malignant == 208.
+  - Assert: every referenced file exists on disk.
+  - Assert: no row appears in BUSI_phase1_excluded.csv.
+  - Raise clear errors on contract violations.
+
+split.py
+  - Input: BUSI_phase1_manifest.csv, seed (from config), ratios (70/15/15).
+  - Stratify by class (benign/malignant) using sklearn or equivalent.
+  - Write: data/splits/train.csv, val.csv, test.csv.
+  - Assert splits are disjoint.
+  - Assert class distribution is approximately preserved.
+  - Record seed and exact counts in a split_metadata.json.
+  - Expected approximate sizes: ~439 train / ~94 val / ~95 test.
+    Exact counts are computed by code; do not hardcode them.
+  - README must note: image-level split, not patient-wise (see §3 caveat).
+
+dataset.py
+  - PyTorch Dataset wrapping a split CSV.
+  - Load image as grayscale, load mask as binary.
+  - Apply transforms from transforms.py.
+  - Validate: image and mask spatial dims match after loading.
+  - Raise graceful errors for: missing file, corrupt file, empty mask,
+    non-binary mask values after preprocessing.
+  - DataLoader: configurable batch size, num_workers; deterministic for
+    val/test (shuffle=False, no random augmentation).
+
+transforms.py
+  - All resize operations: image uses bilinear (or configurable); mask uses
+    nearest-neighbor ONLY.
+  - Target size is read from config; must not be hardcoded in callers.
+  - Grayscale conversion.
+  - Intensity normalization (e.g. [0,1] or z-score); method configurable.
+    If statistics are fit (mean/std), fit on train set only.
+  - Training augmentations: horizontal flip, vertical flip, rotation,
+    brightness/contrast jitter, elastic deformation (TBD — add only if
+    clinically plausible and implemented correctly for image+mask pairs).
+    All augmentations applied identically to image and mask.
+  - Val/test: deterministic pipeline only (resize + normalize). No random ops.
+  - All augmentation parameters configurable; augmentation can be disabled.
+
+models/unet.py
+  - Plain U-Net: encoder-decoder with skip connections.
+  - Configurable depth and base feature channels.
+  - Input channels: 1 (grayscale). Output channels: 1 (logit for binary mask).
+  - No attention gates, no transformers, no CBAM in Phase 1.
+  - Architecture params stored in config and saved in checkpoint.
+
+losses.py
+  - Dice loss (operating on probabilities after sigmoid).
+  - Binary cross-entropy (BCEWithLogitsLoss preferred for numerical stability).
+  - Combined Dice+BCE with configurable weighting.
+  - Each loss independently testable.
+
+metrics.py  [KEEP INDEPENDENT OF TRAINING CODE]
+  Segmentation:
+    - Dice coefficient (DSC)         [PRIMARY]
+    - IoU / Jaccard                  [PRIMARY]
+    - Precision (pixel-level)
+    - Recall / Sensitivity (pixel-level)
+    - Specificity (pixel-level)
+    - HD95 (Hausdorff 95th percentile) — implement only if reliable; TBD
+    - Do NOT use pixel accuracy as a primary metric
+  Classification:
+    - ROC-AUC
+    - PR-AUC
+    - Sensitivity / Recall
+    - Specificity
+    - Precision
+    - F1
+    - Balanced accuracy
+    - Confusion matrix (absolute + normalized)
+    - Do NOT report accuracy alone
+  Each metric function: takes numpy arrays; has a unit test.
+
+train.py  (segmentation)
+  - Config-driven: reads YAML for all hyperparameters.
+  - Records: model arch, loss, optimizer, LR, batch size, image size,
+    seed, augmentation flags, start time, environment.
+  - Trains for configured epochs; evaluates on val set each epoch.
+  - Checkpoints best model by validation Dice. Saves full config in checkpoint.
+  - Logs: train loss, val loss, val Dice, val IoU per epoch (CSV + console).
+  - Deterministic mode: set seed for Python, NumPy, PyTorch, CUDA.
+  - GPU when available; CPU fallback; device read from config or auto-detected.
+  - Never reads from or evaluates on test set during training.
+
+evaluate.py
+  - Loads a checkpoint; runs inference on a specified split (train/val/test).
+  - Computes all segmentation metrics (per-image and aggregate).
+  - Saves: metric CSV, qualitative overlays (image / GT mask / predicted mask).
+  - Test set must be evaluated ONCE, only after final model selection from val.
+  - Evaluation code must not import or call any training-loop code.
+
+classify.py
+  - Derive lesion ROI from a mask (GT or predicted): bounding box crop with
+    configurable padding; or full-image path.
+  - Two strictly separate experiment modes:
+      ORACLE:    ROI derived from ground-truth mask.
+      PREDICTED: ROI derived from U-Net predicted mask.
+    These two modes must not mix crops or share evaluation records.
+  - Baseline model: ResNet18 or EfficientNet-B0; configurable; pretrained
+    weights optional (configurable). No complex architecture in Phase 1.
+  - Binary label: benign=0, malignant=1.
+  - Address class imbalance with weighted loss or weighted sampler using
+    training set only.
+  - Save: checkpoint, metric CSV, ROC curve, PR curve, confusion matrix.
+
+visualize.py
+  - Overlay: original image + GT mask + predicted mask (colour-coded).
+  - Grid of N random train/val/test samples for sanity checking.
+  - Failure-case visualization: worst Dice predictions on val/test.
+  - Save as PNG to outputs/reports/; do not display interactively in
+    non-interactive environments.
+
+utils.py
+  - set_seed(seed): sets Python random, NumPy, torch, torch.cuda seeds.
+  - get_device(): returns CUDA if available, else CPU.
+  - load_config(path): loads YAML; validates required keys.
+  - save_checkpoint / load_checkpoint: includes full config dict in payload.
+  - Timer / epoch-time logging helper.
+
+
+────────────────────────────────────────────────────────────────────────────────
+7. DATA CONTRACTS
+────────────────────────────────────────────────────────────────────────────────
+BUSI_phase1_manifest.csv — expected columns (verify, do not assume extras):
+  filename         : relative path from dataset root (benign/benign (1).png)
+  class            : "benign" or "malignant"
+  mask_filename    : corresponding mask relative path
+  Row count: 628.  Benign: 420.  Malignant: 208.
+
+BUSI_phase1_excluded.csv — expected columns:
+  filename, class, mask_filenames (may be multiple), reason
+  Row count: 17.  Reason: "multi-mask".
+
+Split CSVs (to be generated):
+  train.csv / val.csv / test.csv
+  Columns inherited from manifest plus: split (train/val/test).
+  No image appears in more than one split.
+  No image from excluded CSV appears in any split.
+
+split_metadata.json (to be generated alongside split CSVs):
+  seed, split_ratios, exact counts (total/benign/malignant) per split,
+  timestamp, note: "image-level stratified; not patient-wise (BUSI patient
+  IDs not verified in local data)".
+
+Image contract:
+  Grayscale PNG. Variable native dimensions. Preprocessed to configured
+  target size (e.g. 256×256). Pixel values: float [0,1] or z-normalised.
+
+Mask contract:
+  Binary PNG. Same native size as paired image. Preprocessed with
+  nearest-neighbor interpolation to target size. Values after preprocessing:
+  {0, 1} integer or {0.0, 1.0} float. Empty masks (all zero) raise a
+  warning and are flagged; not silently accepted.
+
+
+────────────────────────────────────────────────────────────────────────────────
+8. CONFIGURATION SCHEMA (YAML)
+────────────────────────────────────────────────────────────────────────────────
+All experiments read from a YAML config. Required keys (minimum):
+
+  data:
+    raw_root:        "D:/Dataset_BUSI_with_GT"   # configurable; no hardcode
+    manifest:        "data/manifests/BUSI_phase1_manifest.csv"
+    excluded:        "data/manifests/BUSI_phase1_excluded.csv"
+    splits_dir:      "data/splits"
+    split_seed:      <integer; must be recorded>
+    split_ratios:    [0.70, 0.15, 0.15]
+    image_size:      [256, 256]                  # or [384, 384]; configurable
+
+  preprocessing:
+    grayscale:       true
+    normalize:       "minmax"                    # or "zscore"; fit on train
+    augmentation:    true                        # train only
+
+  augmentation:
+    hflip_prob:      0.5
+    vflip_prob:      0.5
+    rotation_deg:    15
+    brightness:      0.2
+    contrast:        0.2
+    elastic:         false                        # TBD
+
+  model:
+    arch:            "unet"
+    depth:           4
+    base_channels:   64
+
+  training:
+    epochs:          100
+    batch_size:      8
+    optimizer:       "adam"
+    lr:              1e-3
+    lr_scheduler:    "cosine"                    # or none; configurable
+    loss:            "dice_bce"
+    dice_weight:     0.5
+    bce_weight:      0.5
+    early_stopping_patience: 20
+
+  hardware:
+    device:          "auto"                      # auto | cuda | cpu
+    deterministic:   true
+    num_workers:     4
+
+  outputs:
+    checkpoint_dir:  "outputs/checkpoints"
+    log_dir:         "outputs/logs"
+    report_dir:      "outputs/reports"
+
+  classification:
+    roi_mode:        "oracle"                    # oracle | predicted
+    model_arch:      "resnet18"                  # or efficientnet_b0
+    pretrained:      true
+    roi_padding_px:  10
+    imbalance_strategy: "weighted_loss"          # or weighted_sampler
+
+
+────────────────────────────────────────────────────────────────────────────────
+9. EXPERIMENT PROTOCOL
+────────────────────────────────────────────────────────────────────────────────
+EXP-SEG-01   Plain U-Net segmentation baseline
+  Config:      configs/exp_seg_01.yaml
+  Split:       train.csv / val.csv
+  Selection:   best checkpoint = highest val Dice
+  Evaluation:  ONCE on test.csv after selection
+  Outputs:     metric CSV, per-image metrics, qualitative overlays
+
+EXP-CLS-01   Malignancy classification — oracle ROI
+  Input:       ground-truth masks → cropped ROI
+  Config:      configs/exp_cls_oracle.yaml  (roi_mode: oracle)
+  Split:       same train/val/test CSVs as EXP-SEG-01
+  Selection:   best checkpoint = highest val ROC-AUC
+  Evaluation:  ONCE on test.csv after selection
+
+EXP-CLS-02   Malignancy classification — predicted ROI
+  Input:       EXP-SEG-01 predicted masks → cropped ROI
+  Config:      configs/exp_cls_predicted.yaml  (roi_mode: predicted)
+  Note:        use EXP-SEG-01 test-set predictions; do not re-run training
+               with test-derived knowledge
+  Selection:   checkpoint from EXP-CLS-01 (same architecture) OR retrained
+               on train-set predicted masks from EXP-SEG-01's train inference;
+               document clearly which was done.
+  Evaluation:  ONCE on test.csv after selection
+
+COMPARE-01   Segmentation quality vs classification gap analysis
+  Compare EXP-CLS-01 vs EXP-CLS-02 metrics on the same test set.
+  Identify whether predicted-ROI degrades classification and by how much.
+
+Rule: no advanced models (attention, transformers, etc.) are started until
+EXP-SEG-01 and EXP-CLS-01 are completed and results are inspected.
+
+
+────────────────────────────────────────────────────────────────────────────────
+10. LEAKAGE CONTROL RULES
+────────────────────────────────────────────────────────────────────────────────
+L1  Image and its mask are always kept in the same split.
+L2  No image appears in more than one split. Assert this programmatically.
+L3  Val and test sets receive NO random augmentation; preprocessing only.
+L4  Test set is evaluated ONCE per experiment, after all model selection is
+    done using validation metrics. Never tune on test results.
+L5  Normalization statistics (if learned) are computed on train set only
+    and applied to val/test without refitting.
+L6  Model predictions are never used to generate or alter ground-truth labels.
+L7  Ground-truth masks are never manually altered by code; if a future manual
+    correction is made, it must be documented with reason and date.
+L8  Classification ROI in EXP-CLS-02 must come from predictions produced
+    without test-set leakage (model not trained/selected using test labels).
+L9  Audit trail: BUSI_phase1_excluded.csv documents all excluded cases.
+    No excluded multi-mask case enters any split.
+
+
+────────────────────────────────────────────────────────────────────────────────
+11. QUALITY GATES
+────────────────────────────────────────────────────────────────────────────────
+GATE 1 — Before split generation
+  [x] manifest row count == 628
+  [x] benign count == 420, malignant count == 208
+  [x] every manifest file exists on disk
+  [x] no file in manifest appears in excluded CSV
+  [x] no multi-mask files in manifest (each row has exactly one mask)
+  [x] deleted duplicate pair is absent (log as expected)
+  [x] no empty masks (zero nonzero pixels) without documentation
+
+GATE 2 — After split generation
+  [x] train + val + test row counts sum to 628
+  [x] splits are disjoint (no shared filenames)
+  [x] class stratification preserved (check ratio within ±2 %)
+  [x] split_metadata.json written with seed and counts
+  [x] no excluded case in any split
+
+GATE 3 — Before training
+  [x] dataloader smoke test passes (load 1 batch; check shapes/dtypes/ranges)
+  [x] image batch shape: (B, 1, H, W); H, W == configured image_size
+  [x] mask batch shape:  (B, 1, H, W); values in {0, 1}
+  [x] no NaN/Inf in image tensor
+  [x] augmentation confirmed OFF for val/test DataLoader
+
+GATE 4 — Before final test evaluation
+  [x] training completed with no val/test leakage events logged
+  [x] best checkpoint selected by val Dice only
+  [x] metrics code verified by unit tests
+  [x] qualitative predictions inspected on val set (no systematic failure)
+  [x] test evaluation is first and only run on test set for this experiment
+
+
+────────────────────────────────────────────────────────────────────────────────
+12. METRICS SPECIFICATION
+────────────────────────────────────────────────────────────────────────────────
+SEGMENTATION
+  Primary (mandatory):
+    Dice coefficient (DSC)   — report mean ± std across test images
+    IoU / Jaccard            — report mean ± std across test images
+  Secondary (report where implemented reliably):
+    Pixel precision
+    Pixel recall / sensitivity
+    Pixel specificity
+    HD95 (TBD — implement only if reliable boundary distance code available)
+  Do NOT use pixel accuracy as primary metric.
+  Report both aggregate and per-image distributions.
+
+CLASSIFICATION
+  Mandatory:
+    ROC-AUC               (primary summary metric)
+    PR-AUC
+    Sensitivity / Recall  (positive class = malignant)
+    Specificity
+    Precision
+    F1
+    Balanced accuracy
+    Confusion matrix (absolute counts + row-normalised)
+  Do NOT report accuracy alone.
+  Report separately for EXP-CLS-01 (oracle ROI) and EXP-CLS-02 (predicted ROI).
+
+
+────────────────────────────────────────────────────────────────────────────────
+13. EXECUTION ORDER
+────────────────────────────────────────────────────────────────────────────────
+Step 1   Environment setup
+           pip install -r requirements.txt; verify GPU/CPU; verify paths.
+
+Step 2   Validate raw data and manifest
+           python src/audit.py --raw_root <path>
+           python src/manifest.py --validate
+           → GATE 1 must pass
+
+Step 3   Generate train/val/test split
+           python src/split.py --config configs/split.yaml
+           → writes data/splits/train.csv, val.csv, test.csv
+           → writes data/splits/split_metadata.json
+           → GATE 2 must pass
+
+Step 4   Preprocessing and dataloader smoke test
+           python tests/test_data.py
+           → GATE 3 must pass
+
+Step 5   Visualise sample batches
+           python src/visualize.py --split train --n 16
+           Human inspection: confirm image/mask alignment, augmentation applied.
+
+Step 6   Train baseline U-Net (EXP-SEG-01)
+           python src/train.py --config configs/exp_seg_01.yaml
+           Checkpoints to outputs/checkpoints/exp_seg_01/
+
+Step 7   Evaluate segmentation on val (inspect, not model selection)
+           python src/evaluate.py --config configs/exp_seg_01.yaml --split val
+           Review qualitative overlays; inspect failure cases.
+
+Step 8   Final segmentation evaluation on test (GATE 4 must pass first)
+           python src/evaluate.py --config configs/exp_seg_01.yaml --split test
+           → Run exactly once. Record results.
+
+Step 9   Classify — oracle ROI baseline (EXP-CLS-01)
+           python src/classify.py --config configs/exp_cls_oracle.yaml
+           → train and val as above; evaluate on test once after selection.
+
+Step 10  Classify — predicted ROI (EXP-CLS-02)
+           python src/classify.py --config configs/exp_cls_predicted.yaml
+           → uses EXP-SEG-01 predicted masks for ROI; see §9 for protocol.
+
+Step 11  Compare and report
+           Aggregate metrics from EXP-SEG-01, EXP-CLS-01, EXP-CLS-02.
+           Produce outputs/reports/phase1_summary.csv.
+
+Step 12  Only after step 11 is complete: begin ablations or stronger models.
+
+
+────────────────────────────────────────────────────────────────────────────────
+14. DELIVERABLES
+────────────────────────────────────────────────────────────────────────────────
+D1   data/splits/train.csv, val.csv, test.csv, split_metadata.json
+D2   src/ — all modules described in §6, passing unit/smoke tests
+D3   configs/ — YAML configs for all experiments
+D4   outputs/reports/exp_seg_01/
+       metric_summary.csv, per_image_metrics.csv, overlay samples, failure cases
+D5   outputs/reports/exp_cls_oracle/
+       metric_summary.csv, ROC curve PNG, PR curve PNG, confusion matrix PNG
+D6   outputs/reports/exp_cls_predicted/
+       same as D5
+D7   outputs/reports/phase1_summary.csv  — unified comparison table
+D8   README.md — setup, execution order, split caveat, leakage rules
+D9   requirements.txt with pinned versions
+D10  .gitignore — excludes outputs/checkpoints/, outputs/logs/,
+                   data/processed/, __pycache__
+
+
+────────────────────────────────────────────────────────────────────────────────
+15. ACCEPTANCE CRITERIA
+────────────────────────────────────────────────────────────────────────────────
+AC1   All quality gates (§11) pass without manual override.
+AC2   Test set evaluated exactly once per experiment after val-based selection.
+AC3   Split disjointness verified programmatically; no assertion failures.
+AC4   All metrics computed without NaN; unit tests pass on toy inputs.
+AC5   Segmentation results report Dice and IoU for the test set.
+      (No numerical threshold mandated at PRD level; baseline must be
+       complete and trustworthy regardless of value.)
+AC6   Classification results report ROC-AUC, confusion matrix, and all
+      metrics in §12 separately for oracle and predicted ROI.
+AC7   No raw data file is modified or deleted by any script.
+AC8   Experiment configs and checkpoint metadata are consistent with each other.
+AC9   README documents the image-level split caveat and patient-ID limitation.
+AC10  No advanced model (transformers, attention) is implemented in Phase 1.
+
+
+────────────────────────────────────────────────────────────────────────────────
+16. FUTURE EXTENSION POINTS (do not implement in Phase 1)
+────────────────────────────────────────────────────────────────────────────────
+EXT-A   Patient-wise splitting
+          If BUSI patient IDs become available locally, replace image-level
+          split with stratified patient-wise split. Document the change.
+          BUS-UCLM already provides patient IDs and supports this natively.
+
+EXT-B   BUS-UCLM ingestion (Phase 2)
+          683 images, 38 patients, 419 normal / 174 benign / 90 malignant.
+          Multi-lesion annotations. Biopsy-confirmed malignancy.
+          Requires: patient-wise split, domain-difference documentation,
+          do NOT simply concatenate with BUSI without recording acquisition
+          and domain differences.
+
+EXT-C   BUSI multi-mask curation (Phase 2)
+          The 17 held-out multi-mask cases require manual review before use:
+          categorise as clear multi-lesion / ambiguous / unsuitable.
+          Do not merge masks without justification.
+
+EXT-D   Multi-lesion segmentation (Phase 2)
+          Use BUS-UCLM + curated BUSI multi-mask subset.
+          Instance vs semantic segmentation TBD.
+
+EXT-E   Advanced segmentation architectures (after Phase 1 baseline stable)
+          Candidates: Attention U-Net, U-Net++, UNet3+, TransUNet.
+          Implement only in ablation after plain U-Net baseline is documented.
+
+EXT-F   Lesion-boundary uncertainty (Phase 3)
+          Methods: MC dropout, deep ensembles, TTA, probabilistic masks.
+          Requires stable deterministic baseline first.
+
+EXT-G   Cross-dataset generalisation
+          Train on BUSI; test on BUS-UCLM (and vice versa).
+          Requires EXT-B to be complete.
+
+
+────────────────────────────────────────────────────────────────────────────────
+17. KNOWN UNKNOWNS / TBD ITEMS
+────────────────────────────────────────────────────────────────────────────────
+TBD-1   HD95 implementation: include only if a reliable, tested boundary-
+        distance implementation is available. Do not include a broken one.
+TBD-2   Elastic deformation augmentation: include only if correctly applied
+        to image+mask pair simultaneously. Otherwise omit.
+TBD-3   Normalization strategy (minmax vs z-score): configurable; decision
+        deferred to experiment config.
+TBD-4   Pretrained encoder for U-Net: encoder initialisation (random vs
+        ImageNet pretrained on grayscale) is configurable; document choice.
+TBD-5   Exact EXP-CLS-02 protocol for predicted-ROI training: whether to
+        retrain classifier on train-set predicted-mask ROIs or reuse
+        EXP-CLS-01 weights; must be explicitly chosen and documented.
+TBD-6   BUSI patient-ID mapping: not available in local data; see §3 caveat.
+        If recovered, see EXT-A.
+TBD-7   Baseline numerical targets for Dice/IoU and ROC-AUC: not pre-set
+        at PRD level. Results are compared against literature values from
+        BUS-Set (Thomas et al., Medical Physics, 2023) after the fact.
+
+================================================================================
+END OF PRD
+================================================================================

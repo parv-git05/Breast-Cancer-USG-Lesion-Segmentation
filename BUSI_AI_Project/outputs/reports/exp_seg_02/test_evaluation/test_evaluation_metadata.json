@@ -1,0 +1,34 @@
+{
+  "experiment_id": "EXP-SEG-02",
+  "checkpoint_path": "outputs/checkpoints/exp_seg_02\\final_model\\final_model.pt",
+  "checkpoint_epoch": 86,
+  "test_manifest_path": "data/manifests/BUSI_final_test_manifest.csv",
+  "test_image_count": 63,
+  "benign_count": 42,
+  "malignant_count": 21,
+  "development_image_count": 565,
+  "dev_test_disjointness_confirmed": true,
+  "preprocessing_config": {
+    "grayscale": true,
+    "normalize": "minmax",
+    "augmentation": true
+  },
+  "image_size": [
+    256,
+    256
+  ],
+  "segmentation_threshold": 0.5,
+  "metrics_calculated": [
+    "dice",
+    "iou",
+    "pixel_precision",
+    "pixel_recall",
+    "specificity"
+  ],
+  "evaluation_timestamp": "2026-09-04T12:34:38.377012",
+  "device": "cuda",
+  "pytorch_version": "2.5.0+cu121",
+  "cuda_available": true,
+  "git_commit_hash": "f3797e044c2f065d03e09f5c9261c67e2a8293d1",
+  "evaluated_samples_confirmed": 63
+}

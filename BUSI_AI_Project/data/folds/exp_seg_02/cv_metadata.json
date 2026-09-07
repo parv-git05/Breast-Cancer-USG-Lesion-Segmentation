@@ -1,0 +1,68 @@
+{
+  "experiment": "EXP-SEG-02",
+  "timestamp": "2026-09-04T12:24:58.054594",
+  "seed": 42,
+  "n_splits": 3,
+  "total_phase1_images": 628,
+  "test_set": {
+    "total": 63,
+    "benign": 42,
+    "malignant": 21,
+    "malignant_ratio": 0.3333333333333333,
+    "manifest_path": "data/manifests\\BUSI_final_test_manifest.csv",
+    "physical_dir": "data/test_set"
+  },
+  "development_set": {
+    "total": 565,
+    "benign": 378,
+    "malignant": 187,
+    "malignant_ratio": 0.3309734513274336,
+    "manifest_path": "data/manifests\\BUSI_development_manifest.csv",
+    "folds_dir": "data/folds/exp_seg_02",
+    "counts": {
+      "fold_1": {
+        "train": {
+          "total": 376,
+          "benign": 252,
+          "malignant": 124,
+          "malignant_ratio": 0.32978723404255317
+        },
+        "val": {
+          "total": 189,
+          "benign": 126,
+          "malignant": 63,
+          "malignant_ratio": 0.3333333333333333
+        }
+      },
+      "fold_2": {
+        "train": {
+          "total": 377,
+          "benign": 252,
+          "malignant": 125,
+          "malignant_ratio": 0.33156498673740054
+        },
+        "val": {
+          "total": 188,
+          "benign": 126,
+          "malignant": 62,
+          "malignant_ratio": 0.32978723404255317
+        }
+      },
+      "fold_3": {
+        "train": {
+          "total": 377,
+          "benign": 252,
+          "malignant": 125,
+          "malignant_ratio": 0.33156498673740054
+        },
+        "val": {
+          "total": 188,
+          "benign": 126,
+          "malignant": 62,
+          "malignant_ratio": 0.32978723404255317
+        }
+      }
+    }
+  },
+  "note": "Stage 1: 10% stratified locked holdout test. Stage 2: 3-fold stratified CV on development data only."
+}

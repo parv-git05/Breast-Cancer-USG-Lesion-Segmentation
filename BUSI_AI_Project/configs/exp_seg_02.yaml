@@ -1,0 +1,56 @@
+data:
+  raw_root: ".."
+  manifest: "data/manifests/BUSI_development_manifest.csv"
+  test_manifest: "data/manifests/BUSI_final_test_manifest.csv"
+  test_dir: "data/test_set"
+  excluded: "data/manifests/BUSI_phase1_excluded.csv"
+  folds_dir: "data/folds/exp_seg_02"
+  n_splits: 3
+  seed: 42
+  image_size: [256, 256]
+
+preprocessing:
+  grayscale: true
+  normalize: "minmax"
+  augmentation: true
+
+augmentation:
+  hflip_prob: 0.5
+  vflip_prob: 0.5
+  rotation_deg: 15
+  brightness: 0.2
+  contrast: 0.2
+  elastic: false
+
+model:
+  arch: "unet"
+  depth: 4
+  base_channels: 64
+
+training:
+  epochs: 100
+  batch_size: 8
+  optimizer: "adam"
+  lr: 0.001
+  lr_scheduler: "cosine"
+  loss: "dice_bce"
+  dice_weight: 0.5
+  bce_weight: 0.5
+  early_stopping_patience: 20
+
+hardware:
+  device: "auto"
+  deterministic: true
+  num_workers: 0
+
+outputs:
+  checkpoint_dir: "outputs/checkpoints/exp_seg_02"
+  log_dir: "outputs/logs/exp_seg_02"
+  report_dir: "outputs/reports/exp_seg_02"
+
+classification:
+  roi_mode: "oracle"
+  model_arch: "resnet18"
+  pretrained: true
+  roi_padding_px: 10
+  imbalance_strategy: "weighted_loss"

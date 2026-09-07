@@ -1,0 +1,67 @@
+{
+  "experiment": "EXP-SEG-02",
+  "model_architecture": "Plain U-Net (Depth=4, BaseChannels=64)",
+  "protocol": "3-Fold Stratified Development Cross-Validation (N=565)",
+  "total_images_evaluated": 565,
+  "overall_metrics": {
+    "dice_mean": 0.7148826980511344,
+    "dice_std": 0.28221208824602145,
+    "iou_mean": 0.616919882285777,
+    "iou_std": 0.2812351861575165,
+    "pixel_precision": 0.7945326608346096,
+    "pixel_recall_sensitivity": 0.6667319068002477,
+    "pixel_specificity": 0.9821467485832177,
+    "total_tp_pixels": 2316456,
+    "total_fp_pixels": 599039,
+    "total_fn_pixels": 1157888,
+    "total_tn_pixels": 32954457
+  },
+  "fold_summaries": [
+    {
+      "fold": 1,
+      "best_epoch": 70,
+      "best_val_dice": 0.7281677072105309,
+      "best_val_iou": 0.6288251200775975,
+      "final_train_loss": 0.1988850048881896,
+      "final_val_loss": 0.24201653090616068,
+      "total_epochs_trained": 90,
+      "training_duration_seconds": 1211.1668352999986,
+      "checkpoint_path": "outputs/checkpoints/exp_seg_02\\fold_1\\best_model.pt",
+      "val_dice_mean": 0.7281624804902678,
+      "val_dice_std": 0.27101550656761425,
+      "val_iou_mean": 0.6288185484289843,
+      "val_iou_std": 0.26991475867910775
+    },
+    {
+      "fold": 2,
+      "best_epoch": 86,
+      "best_val_dice": 0.7157126696036554,
+      "best_val_iou": 0.6140324035866801,
+      "final_train_loss": 0.16768856548393765,
+      "final_val_loss": 0.25081202077368897,
+      "total_epochs_trained": 100,
+      "training_duration_seconds": 1354.9359065999888,
+      "checkpoint_path": "outputs/checkpoints/exp_seg_02\\fold_2\\best_model.pt",
+      "val_dice_mean": 0.7157198258863188,
+      "val_dice_std": 0.2696706922002364,
+      "val_iou_mean": 0.6140423587909107,
+      "val_iou_std": 0.2762593034449176
+    },
+    {
+      "fold": 3,
+      "best_epoch": 100,
+      "best_val_dice": 0.700692910666683,
+      "best_val_iou": 0.6078321642240654,
+      "final_train_loss": 0.17055242873417834,
+      "final_val_loss": 0.26381342268238467,
+      "total_epochs_trained": 100,
+      "training_duration_seconds": 1356.1639640000067,
+      "checkpoint_path": "outputs/checkpoints/exp_seg_02\\fold_3\\best_model.pt",
+      "val_dice_mean": 0.7006951506361826,
+      "val_dice_std": 0.3053897891252517,
+      "val_iou_mean": 0.6078354488600783,
+      "val_iou_std": 0.2979117434073156
+    }
+  ],
+  "total_cv_duration_seconds": 3950.2898255000036
+}

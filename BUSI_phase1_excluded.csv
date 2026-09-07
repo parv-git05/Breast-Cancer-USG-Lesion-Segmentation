@@ -1,0 +1,18 @@
+image,reason,num_masks
+D:\Dataset_BUSI_with_GT\benign\benign (100).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (163).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (173).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (181).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (195).png,multiple_masks,3
+D:\Dataset_BUSI_with_GT\benign\benign (25).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (315).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (346).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (4).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (424).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (54).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (58).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (83).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (92).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (93).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\benign\benign (98).png,multiple_masks,2
+D:\Dataset_BUSI_with_GT\malignant\malignant (53).png,multiple_masks,2

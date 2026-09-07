@@ -1,0 +1,30 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# PyTorch models and checkpoints
+BUSI_AI_Project/outputs/checkpoints/
+*.pt
+*.pth
+*.onnx
+
+# Experimental prediction qualitative outputs
+BUSI_AI_Project/outputs/reports/exp_seg_02/test_evaluation/qualitative/
+
+# Processed derived data
+BUSI_AI_Project/data/processed/
+
+# System and IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
